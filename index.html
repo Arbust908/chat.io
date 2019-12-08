@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chat room</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <main class="w-full bg-gray-900 min-h-screen">
+        <!-- <marquee behavior="" direction=""> -->
+            <h1 class="text-4xl text-green-600 font-bold font-mono text-center">
+                chat.io
+            </h1>
+        <!-- </marquee> -->
+        <section id="app">
+            <form @submit.prevent="send" class="flex justify-around m-2">
+                <input
+                type="text"
+                class="w-9/12 border border-green-600 bg-transparent text-green-600 rounded px-3 py-1 focus:outline-none"
+                v-model="newMessage">
+                <button class="text-green-600 border-green-600 border rounded px-3 py-1 text-sm">send</button>
+            </form>
+            <small v-if="isTyping" class="uppercase text-green-200 pl-4 pb-2">Someone is typing</small>
+            <main class="m-2">
+                <ul class="flex flex-col">
+                <li
+                    v-for="message in messages"
+                    class="rounded border border-green-600 text-green-100 px-2 py-1 mb-1  inline"
+                    v-bind:class="getMsgClassed(message.type)">
+                    {{ message.msg }}
+                </li>
+                </ul>
+            </main>
+        </section>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        var socket = io();
+        let app = new Vue({
+            el: '#app',
+            data: {
+                newMessage: null,
+                messages: [],
+                isTyping: false,
+            },
+            created() {
+                console.log('Creado!');
+                socket.emit('Creado', 'Pancho');
+                socket.on('Creado', (data) => {
+                    console.log(data);
+                    
+                });
+
+                socket.on('chatMessage', (data) => {
+                    this.messages.push({msg: data, type: 'other'});
+                    console.log('Me mandaron data');
+                });
+                socket.on('typing', () => {
+                    this.isTyping = true;
+                });
+                socket.on('stopedTyping', () => {
+                    this.isTyping = false;
+                });
+            },
+            watch: {
+                newMessage(value) {
+                    value 
+                    ? socket.emit('typing')
+                    : socket.emit('stopedTyping')
+                }
+            },
+            methods: {
+                send() {
+                    this.messages.push({msg: this.newMessage, type: 'self'});
+                    socket.emit('chatMessage', this.newMessage);
+                    this.newMessage = null;
+                },
+                getMsgClassed(type){
+                    return {
+                        'text-right ml-12' : type == 'self',
+                        'text-left  mr-12' : type == 'other'
+                    }
+                }
+            },
+        });
+    </script>
+</body>
+</html>
