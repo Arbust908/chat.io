@@ -6,30 +6,39 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Chat room</title>
     <link rel="stylesheet" href="/css/main.css">
+    <script src="https://kit.fontawesome.com/7dc8e45a22.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <main class="w-full bg-gray-900 min-h-screen">
+    <main class="w-full bg-gray-900 min-h-screen font-mono text-green-600">
         <!-- <marquee behavior="" direction=""> -->
-            <h1 class="text-4xl text-green-600 font-bold font-mono text-center">
+            <h1 class="text-4xl font-bold text-center">
                 chat.io
             </h1>
         <!-- </marquee> -->
         <section id="app">
-            <form @submit.prevent="send" class="flex justify-around m-2">
+            <form @submit.prevent="setName" class="w-full mx-4" v-if="!isReady">
+                <input type="text" v-model="name" placeholder="Tu nombre" class="text-sm border border-green-600 bg-transparent  rounded px-3 py-1 focus:outline-none mr-4 placeholder-green-800">
+                <button class="text-sm border-green-600 border rounded px-3 py-1 text-sm"> Save </button>
+            </form>
+            <form @submit.prevent="send" class="flex justify-end items-center m-2" v-if="isReady">
+                <h3 class="text-sm pr-2 opacity-75">{{ name }}</h3>
                 <input
                 type="text"
-                class="w-9/12 border border-green-600 bg-transparent text-green-600 rounded px-3 py-1 focus:outline-none"
+                class="w-8/12 border border-green-600 bg-transparent rounded px-3 py-1 focus:outline-none mr-4"
                 v-model="newMessage">
-                <button class="text-green-600 border-green-600 border rounded px-3 py-1 text-sm">send</button>
+                <button class="border-green-600 border rounded px-3 py-1 text-sm">send</button>
             </form>
-            <small v-if="isTyping" class="uppercase text-green-200 pl-4 pb-2">Someone is typing</small>
+            <section v-if="typing.length > 0" class="uppercase px-4 py-2 opacity-75">
+                <small v-for="people in typing">{{ people }} is typing</small>
+            </section>
+            <section v-if="isReady" class="p-3 text-sm"> Online: {{ whoIsOnline }}</section>
             <main class="m-2">
                 <ul class="flex flex-col">
                 <li
                     v-for="message in messages"
-                    class="rounded border border-green-600 text-green-100 px-2 py-1 mb-1  inline"
-                    v-bind:class="getMsgClassed(message.type)">
-                    {{ message.msg }}
+                    class=" border-green-600 px-2 py-1 mb-1 max-w-5/6"
+                    v-bind:class="getMsgClassed(message.author)">
+                    {{ message.author != name ? message.author + ':' : '' }} {{ message.msg }}
                 </li>
                 </ul>
             </main>
@@ -45,45 +54,80 @@
             data: {
                 newMessage: null,
                 messages: [],
-                isTyping: false,
+                typing: [],
+                name: null,
+                isReady: false,
+                online: [],
             },
             created() {
-                console.log('Creado!');
+                window.onbeforeunload = () => {
+                    socket.emit('leave', this.name);
+                }
                 socket.emit('Creado', 'Pancho');
+
                 socket.on('Creado', (data) => {
                     console.log(data);
-                    
                 });
 
                 socket.on('chatMessage', (data) => {
-                    this.messages.push({msg: data, type: 'other'});
-                    console.log('Me mandaron data');
+                    // console.log(data);
+                    this.messages.push({msg: data.msg, author: data.author});
                 });
-                socket.on('typing', () => {
-                    this.isTyping = true;
+
+                socket.on('typing', (name) => {
+                    // console.log(this.typing.indexOf(name));
+                    if (this.typing.indexOf(name) < 0) {
+                        this.typing.push(name);
+                    }
                 });
-                socket.on('stopedTyping', () => {
-                    this.isTyping = false;
+
+                socket.on('stopedTyping', (name) => {
+                    let namePos = this.typing.indexOf(name);
+                    this.typing.splice(namePos, 1);
+                });
+
+                socket.on('joined', (data) => {
+                    this.online.push( data );
+                });
+
+                socket.on('whosOnline', (data) => {
+                    this.online = data;
+                });
+
+                socket.on('leave', (data) => {
+                    let namePos = this.online.indexOf(data);
+                    this.online.splice(namePos, 1);
                 });
             },
             watch: {
                 newMessage(value) {
                     value 
-                    ? socket.emit('typing')
-                    : socket.emit('stopedTyping')
+                    ? socket.emit('typing', this.name)
+                    : socket.emit('stopedTyping', this.name)
                 }
             },
             methods: {
                 send() {
-                    this.messages.push({msg: this.newMessage, type: 'self'});
-                    socket.emit('chatMessage', this.newMessage);
+                    this.messages.push({msg: this.newMessage, author: this.name});
+                    socket.emit('chatMessage', {msg: this.newMessage, author: this.name});
                     this.newMessage = null;
                 },
                 getMsgClassed(type){
                     return {
-                        'text-right ml-12' : type == 'self',
-                        'text-left  mr-12' : type == 'other'
+                        'text-right ml-auto mr-2' : type == this.name,
+                        'text-left  mr-auto ml-2' : type != this.name
                     }
+                },
+                setName() {
+                    this.isReady = true;
+                    this.online.push(this.name);
+                    socket.emit('joined', this.name);
+                    socket.emit('whosOnline', this.online);
+                }
+            },
+            computed: {
+                whoIsOnline() {
+                    return this.online.join(', ');
                 }
             },
         });
