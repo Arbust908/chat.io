@@ -9,6 +9,10 @@ app.get('/css/main.css', (req, res) => {
     res.sendFile(__dirname + '/css/main.css');
 });
 
+app.get('/socket.io/socket.io.js', (req, res) => {
+    res.sendFile(__dirname + '/socket.io/socket.io.js');
+});
+
 http.listen(3000, () =>{
     console.log('Connection done!');
 });
