@@ -20,6 +20,8 @@ http.listen(3000, () =>{
     console.log('Connection done!');
 });
 
+let onlines = [];
+
 io.on('connection', (socket) => {
     //Avisa que hay una nueva coneccion
     console.log('there is a connection');
@@ -46,15 +48,18 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('stopedTyping', name);
     });
 
-    socket.on('joined', (data) => {
-        socket.broadcast.emit('joined', (data));
-    });
-
     socket.on('whosOnline', (data) => {
-        socket.broadcast.emit('whosOnline', (data));
+        onlines.push(data);
+        io.emit('whosOnline', (onlines));
     });
 
     socket.on('leave', (data) => {
-        socket.broadcast.emit('leave', (data));
+        let namePos = onlines.indexOf(data);
+        if (namePos >= 0) {
+            onlines.splice(namePos, 1);
+            io.emit('whosOnline', (onlines));
+        } else {
+            console.log('Phantom '+data);
+        }
     });
 });
