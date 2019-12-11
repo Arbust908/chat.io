@@ -10,11 +10,9 @@
 </head>
 <body>
     <main class="w-full bg-gray-900 min-h-screen font-mono text-green-600">
-        <!-- <marquee behavior="" direction=""> -->
-            <h1 class="text-4xl font-light text-center">
-                < chat.io />
-            </h1>
-        <!-- </marquee> -->
+        <h1 class="text-4xl font-light text-center">
+            < chat.io />
+        </h1>
         <section id="app">
             <form @submit.prevent="setName" class="w-full mx-4" v-if="!isReady">
                 <input type="text" v-model="name" placeholder="Tu nombre" class="text-sm border border-green-600 bg-transparent  rounded px-3 py-1 focus:outline-none mr-4 placeholder-green-800">
@@ -70,12 +68,10 @@
                 });
 
                 socket.on('chatMessage', (data) => {
-                    // console.log(data);
                     this.messages.push({msg: data.msg, author: data.author});
                 });
 
                 socket.on('typing', (name) => {
-                    // console.log(this.typing.indexOf(name));
                     if (this.typing.indexOf(name) < 0) {
                         this.typing.push(name);
                     }
@@ -91,6 +87,7 @@
                 });
 
                 socket.on('whosOnline', (data) => {
+                    // Hay que ver como podemos hacer que no se pisen con las nuevas sesiones
                     this.online = data;
                 });
 
