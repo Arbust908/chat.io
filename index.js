@@ -20,7 +20,11 @@ http.listen(3000, () =>{
     console.log('Connection done!');
 });
 
+let online = [];
+let msgs = [];
+
 io.on('connection', (socket) => {
+    socket.join('mainRoom');
     //Avisa que hay una nueva coneccion
     console.log('there is a connection');
     //Avisa que se perdio una coneccion
@@ -28,33 +32,53 @@ io.on('connection', (socket) => {
         console.log('Bye bye');
     });
 
-    socket.on('Creado', (data) => {
-        //io.emit('Creado', data); // <-- este emite a todos
-        socket.broadcast.emit('Creado', data); // <-- Este solo emite a otros
+    socket.on('Creado', () => {
+        let data = {
+            'People': online,
+            'Chat': msgs
+        };
+        io.to('mainRoom').emit('Creado', data); // <-- este emite a todos
+        //socket.to('mainRoom').broadcast.emit('Creado', data); // <-- Este solo emite a otros
     });
 
     socket.on('chatMessage', (msg) => {
-        // console.log(msg);
-        socket.broadcast.emit('chatMessage', (msg));
+        //console.log(msg);
+        msgs.unshift(msg)
+        socket.to('mainRoom').emit('chatMessage', (msgs));
     });
 
     socket.on('typing', (name) => {
-        socket.broadcast.emit('typing', name);
+        socket.to('mainRoom').broadcast.emit('typing', name);
     });
 
     socket.on('stopedTyping', (name) => {
-        socket.broadcast.emit('stopedTyping', name);
+        socket.to('mainRoom').broadcast.emit('stopedTyping', name);
     });
 
     socket.on('joined', (data) => {
-        socket.broadcast.emit('joined', (data));
+        online.push(data);
+        //socket.to('mainRoom').broadcast.emit('joined', (data));
     });
 
     socket.on('whosOnline', (data) => {
-        socket.broadcast.emit('whosOnline', (data));
+        //console.log(data);
+        socket.to('mainRoom').broadcast.emit('whosOnline', (online));
     });
 
     socket.on('leave', (data) => {
-        socket.broadcast.emit('leave', (data));
+        let namePos = online.indexOf(data);
+        //console.log(namePos);
+        if (namePos >= 0) {
+            online.splice(namePos, 1);
+        }
+        socket.to('mainRoom').broadcast.emit('whosOnline', (online));
+        //socket.to('mainRoom').broadcast.emit('leave', (data));
+    });
+    socket.on('updateMsg', () => {
+        if (msgs.length > 0) {
+            console.log('Borro');
+            msgs.pop();
+            socket.to('mainRoom').broadcast.emit('chatMessage', (msgs));
+        }
     });
 });
