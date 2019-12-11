@@ -8,8 +8,9 @@ Una prueba de concepto para armar un chat con Vue y Socket.io
 * [x]  Fix de que los perfiles online no se pisen
 * [ ]  Un scroll o overflow hidden o borrar lo mas viejo.
 * [ ]  Que el chat pueda mantener session via cookie o LS
-* [ ]  Una parte par personalizar el chat y/o el perfil
+* [ ]  Mantener el chat historico mientras haya alguien online
 * [ ]  Marcar in-chat cuando alguien se loguea
+* [ ]  Una parte para personalizar el chat y/o el perfil
 * [ ]  Documentacion (?)
 
 ### Tecnologias usada
