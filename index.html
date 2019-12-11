@@ -35,7 +35,7 @@
             <main class="m-2">
                 <ul class="flex flex-col">
                 <li
-                    v-for="message in reOrderMsg"
+                    v-for="message in messages"
                     class=" border-green-600 px-2 py-1 mb-1 max-w-5/6"
                     v-bind:class="getMsgClassed(message.author)">
                     {{ message.author != name ? message.author + ':' : '' }} {{ message.msg }}
@@ -70,7 +70,7 @@
                 });
 
                 socket.on('chatMessage', (data) => {
-                    this.messages.push({msg: data.msg, author: data.author});
+                    this.messages.unshift({msg: data.msg, author: data.author});
                 });
 
                 socket.on('typing', (name) => {
@@ -115,7 +115,7 @@
             },
             methods: {
                 send() {
-                    this.messages.push({msg: this.newMessage, author: this.name});
+                    this.messages.unshift({msg: this.newMessage, author: this.name});
                     socket.emit('chatMessage', {msg: this.newMessage, author: this.name});
                     this.newMessage = null;
                 },
@@ -129,7 +129,6 @@
                     this.isReady = true;
                     this.online.push(this.name);
                     console.log(this.online);
-                    
                     //socket.emit('joined', this.name);
                     socket.emit('whosOnline', this.online);
                 }
@@ -138,9 +137,6 @@
                 whoIsOnline() {
                     return this.online.join(', ');
                 },
-                reOrderMsg() {
-                    return this.messages.reverse();
-                }
             },
         });
     </script>
