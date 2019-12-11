@@ -9,7 +9,7 @@
     <script src="https://kit.fontawesome.com/7dc8e45a22.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <main class="w-full bg-gray-900 min-h-screen font-mono text-green-600">
+    <main class="w-full bg-gray-900 h-screen font-mono text-green-600 overflow-hidden">
         <h1 class="text-4xl font-light text-center">
             < chat.io />
         </h1>
@@ -27,13 +27,15 @@
                 <button class="border-green-600 border rounded px-3 py-1 text-sm">send</button>
             </form>
             <section v-if="typing.length > 0" class="uppercase px-4 py-2 opacity-75">
-                <small v-for="people in typing">{{ people }} is typing</small>
+                <small v-for="people in typing" class="px-2 mr-2">
+                    {{ people }} is typing <!-- Aca pondria el ... animado -->
+                </small>
             </section>
             <section v-if="isReady" class="p-3 text-sm"> Online: {{ whoIsOnline }}</section>
             <main class="m-2">
                 <ul class="flex flex-col">
                 <li
-                    v-for="message in messages"
+                    v-for="message in reOrderMsg"
                     class=" border-green-600 px-2 py-1 mb-1 max-w-5/6"
                     v-bind:class="getMsgClassed(message.author)">
                     {{ message.author != name ? message.author + ':' : '' }} {{ message.msg }}
@@ -88,7 +90,15 @@
 
                 socket.on('whosOnline', (data) => {
                     // Hay que ver como podemos hacer que no se pisen con las nuevas sesiones
-                    this.online = data;
+                    console.log(data);
+                    for (let i = 0; i < data.length; i++) {
+                        const person = data[i];
+                        console.log(person);
+                        console.log(this.online.indexOf(person));
+                        if (this.online.indexOf(person) < 0) {
+                            this.online.push(person);
+                        }
+                    }
                 });
 
                 socket.on('leave', (data) => {
@@ -118,13 +128,18 @@
                 setName() {
                     this.isReady = true;
                     this.online.push(this.name);
-                    socket.emit('joined', this.name);
+                    console.log(this.online);
+                    
+                    //socket.emit('joined', this.name);
                     socket.emit('whosOnline', this.online);
                 }
             },
             computed: {
                 whoIsOnline() {
                     return this.online.join(', ');
+                },
+                reOrderMsg() {
+                    return this.messages.reverse();
                 }
             },
         });
