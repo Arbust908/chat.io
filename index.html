@@ -115,9 +115,11 @@
             },
             methods: {
                 send() {
-                    this.messages.unshift({msg: this.newMessage, author: this.name});
-                    socket.emit('chatMessage', {msg: this.newMessage, author: this.name});
-                    this.newMessage = null;
+                    if (this.newMessage.length > 0) {
+                        this.messages.unshift({msg: this.newMessage, author: this.name});
+                        socket.emit('chatMessage', {msg: this.newMessage, author: this.name});
+                        this.newMessage = null;
+                    }
                 },
                 getMsgClassed(type){
                     return {
