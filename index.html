@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/css/main.min.css">
     <script src="https://kit.fontawesome.com/7dc8e45a22.js" crossorigin="anonymous"></script>
 </head>
-<body class="w-full bg-gray-900 font-mono text-green-600 overflow-hidden">
-    <main class="md:max-w-5/6 lg:max-w-8/12 mx-auto shadow h-screen bg-gray-800">
+<body class="w-full bg-gray-900 font-mono text-green-600 overflow-hidden relative">
+    <main class="md:max-w-5/6 lg:max-w-8/12 mx-auto shadow h-screen bg-gray-900 z-30 relative p-4">
         <section class="flex justify-center items-center text-lg pt-6">
             <i class="fad fa-brackets-curly" style="--fa-secondary-opacity: 0"></i>
             <i class="fad fa-empty-set"></i>
@@ -50,6 +50,9 @@
             </main>
         </section>
     </main>
+    <aside class="absolute top-0 bg-black opacity-25 w-full h-screen z-10">
+
+    </aside>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@2/dist/socket.io.js"></script>
     <!-- development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
